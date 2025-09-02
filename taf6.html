@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telugu Letter Fight Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+        background: #222;
+        color: #fff;
+    }
+    #scoreboard {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        font-size: 20px;
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+        border-radius: 10px;
+    }
+    #timer {
+        position: fixed;
+        top: 10px;
+        right: 10px;
+        font-size: 20px;
+        background: rgba(0,0,0,0.5);
+        padding: 10px;
+        border-radius: 10px;
+    }
+    canvas {
+        display: block;
+    }
+</style>
+</head>
+<body>
+<div id="scoreboard">
+    Total Fights: <span id="totalFights">0</span> | Stopped: <span id="stoppedFights">0</span>
+</div>
+<div id="timer">Time: 60</div>
+<canvas id="gameCanvas"></canvas>
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const teluguLetters = ["అ","ఆ","ఇ","ఈ","ఉ","ఊ","ఋ","ఎ","ఏ","ఐ","ఒ","ఓ","ఔ"];
+let fighters = [];
+let totalFights = 0;
+let stoppedFights = 0;
+let gameOver = false;
+let timeLeft = 60;
+
+document.getElementById('totalFights').innerText = totalFights;
+document.getElementById('stoppedFights').innerText = stoppedFights;
+
+class Fighter {
+    constructor(x, y, letter) {
+        this.x = x;
+        this.y = y;
+        this.letter = letter;
+        this.radius = 40;
+        this.color = 'white';
+        this.vx = Math.random() * 2 + 1;
+        this.vy = Math.random() * 2 + 1;
+        this.isFighting = false;
+        this.fightTimer = 0;
+        this.speedBoost = 1;
+    }
+
+    draw() {
+        ctx.beginPath();
+        ctx.font = "40px Arial";
+        ctx.fillStyle = this.color;
+        ctx.fillText(this.letter, this.x, this.y);
+    }
+
+    move() {
+        this.x += this.vx * this.speedBoost;
+        this.y += this.vy * this.speedBoost;
+
+        // Bounce from walls
+        if (this.x < 0 || this.x > canvas.width - this.radius) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height - this.radius) this.vy *= -1;
+
+        this.draw();
+    }
+
+    startFight() {
+        this.isFighting = true;
+        this.speedBoost = 3; // Increase speed during fight
+        this.fightTimer = 5 * 60; // 5 seconds at 60 FPS
+    }
+
+    updateFight() {
+        if (this.isFighting) {
+            this.fightTimer--;
+            if (this.fightTimer <= 0) {
+                this.isFighting = false;
+                this.speedBoost = 1;
+            }
+        }
+    }
+}
+
+function createFighters(num) {
+    for (let i = 0; i < num; i++) {
+        let x = Math.random() * (canvas.width - 50);
+        let y = Math.random() * (canvas.height - 50);
+        let letter = teluguLetters[Math.floor(Math.random() * teluguLetters.length)];
+        fighters.push(new Fighter(x, y, letter));
+    }
+}
+
+function checkFights() {
+    for (let i = 0; i < fighters.length; i++) {
+        for (let j = i + 1; j < fighters.length; j++) {
+            let dx = fighters[i].x - fighters[j].x;
+            let dy = fighters[i].y - fighters[j].y;
+            let distance = Math.sqrt(dx * dx + dy * dy);
+
+            if (distance < 50 && !fighters[i].isFighting && !fighters[j].isFighting) {
+                totalFights++;
+                document.getElementById('totalFights').innerText = totalFights;
+                fighters[i].startFight();
+                fighters[j].startFight();
+
+                // Bounce effect on collision
+                let tempVx = fighters[i].vx;
+                let tempVy = fighters[i].vy;
+                fighters[i].vx = fighters[j].vx;
+                fighters[i].vy = fighters[j].vy;
+                fighters[j].vx = tempVx;
+                fighters[j].vy = tempVy;
+            }
+        }
+    }
+}
+
+canvas.addEventListener('click', (e) => {
+    const clickX = e.clientX;
+    const clickY = e.clientY;
+
+    fighters.forEach(fighter => {
+        if (Math.abs(clickX - fighter.x) < 30 && Math.abs(clickY - fighter.y) < 30) {
+            if (fighter.isFighting) {
+                fighter.isFighting = false;
+                fighter.speedBoost = 1;
+                stoppedFights++;
+                document.getElementById('stoppedFights').innerText = stoppedFights;
+            }
+        }
+    });
+});
+
+function animate() {
+    if (gameOver) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    fighters.forEach(f => {
+        f.move();
+        f.updateFight();
+    });
+
+    checkFights();
+    requestAnimationFrame(animate);
+}
+
+function startTimer() {
+    let timerInterval = setInterval(() => {
+        timeLeft--;
+        document.getElementById('timer').innerText = `Time: ${timeLeft}`;
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            gameOver = true;
+            alert(`Game Over! Total Fights: ${totalFights}, Stopped: ${stoppedFights}`);
+        }
+    }, 1000);
+}
+
+createFighters(10);
+animate();
+startTimer();
+</script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telugu Letters Fight Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #fce4ec;
+        font-family: Arial, sans-serif;
+    }
+    #scoreboard {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 10px 20px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+    .letter {
+        position: absolute;
+        font-size: 50px;
+        font-weight: bold;
+        color: #d81b60;
+        cursor: pointer;
+        user-select: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="scoreboard">
+    ⏳ Time: <span id="timer">60</span>s |
+    Total Fights: <span id="total">0</span> |
+    Fights Stopped: <span id="stopped">0</span>
+</div>
+
+<script>
+const letters = ["అ","ఆ","ఇ","ఈ","ఉ","ఊ","ఎ","ఏ","ఐ","ఒ","ఓ","ఔ"];
+let totalFights = 0;
+let fightsStopped = 0;
+let gameTime = 60;
+
+const scoreboardTotal = document.getElementById("total");
+const scoreboardStopped = document.getElementById("stopped");
+const timerDisplay = document.getElementById("timer");
+
+let gameInterval, fightInterval;
+
+function startGame() {
+    // Countdown timer
+    gameInterval = setInterval(() => {
+        gameTime--;
+        timerDisplay.textContent = gameTime;
+        if (gameTime <= 0) {
+            clearInterval(gameInterval);
+            clearInterval(fightInterval);
+            alert(`Game Over!\nTotal Fights: ${totalFights}\nFights Stopped: ${fightsStopped}`);
+        }
+    }, 1000);
+
+    // Start fights every 3 seconds (pairs)
+    fightInterval = setInterval(() => {
+        createFightPair();
+    }, 3000);
+}
+
+function createFightPair() {
+    totalFights++;
+    scoreboardTotal.textContent = totalFights;
+
+    const letter1 = document.createElement("div");
+    const letter2 = document.createElement("div");
+    letter1.classList.add("letter");
+    letter2.classList.add("letter");
+
+    letter1.textContent = letters[Math.floor(Math.random() * letters.length)];
+    letter2.textContent = letters[Math.floor(Math.random() * letters.length)];
+
+    // Initial positions (opposite sides)
+    let x1 = Math.random() * (window.innerWidth / 2 - 60);
+    let y1 = Math.random() * (window.innerHeight - 60);
+    let x2 = Math.random() * (window.innerWidth / 2 - 60) + window.innerWidth / 2;
+    let y2 = Math.random() * (window.innerHeight - 60);
+
+    letter1.style.left = `${x1}px`;
+    letter1.style.top = `${y1}px`;
+    letter2.style.left = `${x2}px`;
+    letter2.style.top = `${y2}px`;
+
+    document.body.appendChild(letter1);
+    document.body.appendChild(letter2);
+
+    // Random speeds
+    let dx1 = (Math.random() * 2) + 1;
+    let dy1 = (Math.random() * 2) + 1;
+    let dx2 = -(Math.random() * 2) - 1;
+    let dy2 = -(Math.random() * 2) - 1;
+
+    let fightDuration = 5000; // 5 seconds
+    const startTime = Date.now();
+
+    function move() {
+        if (!document.body.contains(letter1) || !document.body.contains(letter2)) return;
+
+        x1 += dx1;
+        y1 += dy1;
+        x2 += dx2;
+        y2 += dy2;
+
+        // Wall bounce
+        if (x1 <= 0 || x1 >= window.innerWidth - 60) dx1 *= -1;
+        if (y1 <= 0 || y1 >= window.innerHeight - 60) dy1 *= -1;
+        if (x2 <= 0 || x2 >= window.innerWidth - 60) dx2 *= -1;
+        if (y2 <= 0 || y2 >= window.innerHeight - 60) dy2 *= -1;
+
+        // Collision bounce
+        const distance = Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2);
+        if (distance < 60) {
+            dx1 *= -1; dy1 *= -1;
+            dx2 *= -1; dy2 *= -1;
+        }
+
+        letter1.style.left = `${x1}px`;
+        letter1.style.top = `${y1}px`;
+        letter2.style.left = `${x2}px`;
+        letter2.style.top = `${y2}px`;
+
+        if (Date.now() - startTime < fightDuration) {
+            requestAnimationFrame(move);
+        } else {
+            // Remove after 5 seconds if not clicked
+            if (document.body.contains(letter1)) letter1.remove();
+            if (document.body.contains(letter2)) letter2.remove();
+        }
+    }
+    move();
+
+    // Click to stop
+    [letter1, letter2].forEach(letter => {
+        letter.addEventListener("click", () => {
+            if (document.body.contains(letter)) {
+                letter.remove();
+                fightsStopped++;
+                scoreboardStopped.textContent = fightsStopped;
+            }
+        });
+    });
+}
+
+// Start game
+startGame();
+</script>
+
+</body>
+</html>

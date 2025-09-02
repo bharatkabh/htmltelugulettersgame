@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telugu Letter Fight Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #fce4ec;
+        font-family: Arial, sans-serif;
+    }
+    #scoreboard {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 10px 20px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+    .letter {
+        position: absolute;
+        font-size: 50px;
+        font-weight: bold;
+        color: #d81b60;
+        cursor: pointer;
+        user-select: none;
+    }
+</style>
+</head>
+<body>
+
+<div id="scoreboard">
+    ⏳ Time: <span id="timer">60</span>s |
+    Total Fights: <span id="total">0</span> |
+    Fights Stopped: <span id="stopped">0</span>
+</div>
+
+<script>
+const letters = ["అ","ఆ","ఇ","ఈ","ఉ","ఊ","ఎ","ఏ","ఐ","ఒ","ఓ","ఔ"];
+let totalFights = 0;
+let fightsStopped = 0;
+let gameTime = 60;
+
+const scoreboardTotal = document.getElementById("total");
+const scoreboardStopped = document.getElementById("stopped");
+const timerDisplay = document.getElementById("timer");
+
+let gameInterval, spawnInterval;
+const fighters = [];
+
+function startGame() {
+    // Countdown timer
+    gameInterval = setInterval(() => {
+        gameTime--;
+        timerDisplay.textContent = gameTime;
+        if (gameTime <= 0) {
+            clearInterval(gameInterval);
+            clearInterval(spawnInterval);
+            alert(`Game Over!\nTotal Fights: ${totalFights}\nFights Stopped: ${fightsStopped}`);
+        }
+    }, 1000);
+
+    // Spawn a new fighter every 1.5 seconds
+    spawnInterval = setInterval(() => {
+        createFighter();
+    }, 1500);
+
+    // Start animation loop
+    animate();
+}
+
+function createFighter() {
+    totalFights++;
+    scoreboardTotal.textContent = totalFights;
+
+    const letter = document.createElement("div");
+    letter.classList.add("letter");
+    letter.textContent = letters[Math.floor(Math.random() * letters.length)];
+
+    // Random position
+    let x = Math.random() * (window.innerWidth - 60);
+    let y = Math.random() * (window.innerHeight - 60);
+
+    letter.style.left = `${x}px`;
+    letter.style.top = `${y}px`;
+    document.body.appendChild(letter);
+
+    // Fighter object
+    const fighter = {
+        el: letter,
+        x: x,
+        y: y,
+        dx: (Math.random() * 2) + 1,
+        dy: (Math.random() * 2) + 1,
+        bornTime: Date.now()
+    };
+
+    fighters.push(fighter);
+
+    // Click event to remove
+    letter.addEventListener("click", () => {
+        if (document.body.contains(letter)) {
+            letter.remove();
+            fightsStopped++;
+            scoreboardStopped.textContent = fightsStopped;
+            fighters.splice(fighters.indexOf(fighter), 1);
+        }
+    });
+}
+
+function animate() {
+    requestAnimationFrame(animate);
+
+    const now = Date.now();
+
+    for (let i = 0; i < fighters.length; i++) {
+        const f = fighters[i];
+
+        // Remove after 5 seconds
+        if (now - f.bornTime > 5000) {
+            if (document.body.contains(f.el)) {
+                f.el.remove();
+            }
+            fighters.splice(i, 1);
+            i--;
+            continue;
+        }
+
+        f.x += f.dx;
+        f.y += f.dy;
+
+        // Wall bounce
+        if (f.x <= 0 || f.x >= window.innerWidth - 60) f.dx *= -1;
+        if (f.y <= 0 || f.y >= window.innerHeight - 60) f.dy *= -1;
+
+        // Check collisions with other fighters
+        for (let j = i + 1; j < fighters.length; j++) {
+            const other = fighters[j];
+            const distance = Math.sqrt((f.x - other.x) ** 2 + (f.y - other.y) ** 2);
+
+            if (distance < 60) {
+                // Bounce by swapping direction
+                [f.dx, other.dx] = [other.dx, f.dx];
+                [f.dy, other.dy] = [other.dy, f.dy];
+
+                // Increase speed on collision
+                f.dx *= 1.2;
+                f.dy *= 1.2;
+                other.dx *= 1.2;
+                other.dy *= 1.2;
+            }
+        }
+
+        f.el.style.left = `${f.x}px`;
+        f.el.style.top = `${f.y}px`;
+    }
+}
+
+startGame();
+</script>
+
+</body>
+</html>

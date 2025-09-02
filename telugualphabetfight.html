@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="te">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Telugu Letters Fight Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #fce4ec;
+        font-family: Arial, sans-serif;
+    }
+    #scoreboard {
+        position: fixed;
+        top: 10px;
+        left: 10px;
+        background: rgba(0,0,0,0.7);
+        color: white;
+        padding: 10px 20px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+    .letter {
+        position: absolute;
+        font-size: 50px;
+        font-weight: bold;
+        color: #d81b60;
+        cursor: pointer;
+        user-select: none;
+        animation: bounce 1s infinite alternate;
+    }
+    @keyframes bounce {
+        0% { transform: translateY(0px); }
+        100% { transform: translateY(15px); }
+    }
+</style>
+</head>
+<body>
+
+<div id="scoreboard">
+    Total Fights: <span id="total">0</span> | Fights Stopped: <span id="stopped">0</span>
+</div>
+
+<script>
+const letters = ["అ","ఆ","ఇ","ఈ","ఉ","ఊ","ఎ","ఏ","ఐ","ఒ","ఓ","ఔ"];
+let totalFights = 0;
+let fightsStopped = 0;
+const scoreboardTotal = document.getElementById("total");
+const scoreboardStopped = document.getElementById("stopped");
+
+function createLetter() {
+    const letter = document.createElement("div");
+    letter.classList.add("letter");
+    letter.textContent = letters[Math.floor(Math.random() * letters.length)];
+    
+    let x = Math.random() * (window.innerWidth - 60);
+    let y = Math.random() * (window.innerHeight - 60);
+    letter.style.left = `${x}px`;
+    letter.style.top = `${y}px`;
+    
+    document.body.appendChild(letter);
+    totalFights++;
+    scoreboardTotal.textContent = totalFights;
+
+    // Movement logic
+    let dx = (Math.random() * 2) + 1;
+    let dy = (Math.random() * 2) + 1;
+
+    function move() {
+        if (!document.body.contains(letter)) return;
+
+        x += dx;
+        y += dy;
+
+        if (x <= 0 || x >= window.innerWidth - 60) dx *= -1;
+        if (y <= 0 || y >= window.innerHeight - 60) dy *= -1;
+
+        letter.style.left = `${x}px`;
+        letter.style.top = `${y}px`;
+
+        requestAnimationFrame(move);
+    }
+    move();
+
+    letter.addEventListener("click", () => {
+        letter.remove();
+        fightsStopped++;
+        scoreboardStopped.textContent = fightsStopped;
+    });
+}
+
+setInterval(createLetter, 1500); // Add a new letter every 1.5 seconds
+</script>
+
+</body>
+</html>
