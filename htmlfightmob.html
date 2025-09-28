@@ -242,6 +242,8 @@ const levelInstructions = {
     function createGod(x, y, isPlayer = false) { return { x, y, width: CHARACTER_WIDTH * 3, height: CHARACTER_HEIGHT * 3, isPlayer }; }
     function createLion(x, y) { return { x, y, vx: 0, vy: 0, width: 60, height: 30, health: 120, maxHealth: 120, onGround: false, direction: 1, speedMultiplier: 1.5 + Math.random() * 0.5, jumpCooldown: 120, isJumping: false }; }
     function createHelicopter(x, y) { return { x, y, vx: 1.5, vy: 0, width: 60, height: 30, health: 100, shootCooldown: 120 + Math.random() * 60, baseY: y, isFalling: false, rotation: 0 }; }
+	
+	/*
     function respawnPlayer() { player = createCharacter(100, 530, true); }
     function setupLevel1() { platforms = [{x:0,y:580,width:800,height:20},{x:200,y:450,width:400,height:15},{x:50,y:320,width:250,height:15},{x:500,y:320,width:250,height:15},{x:0,y:200,width:350,height:15},{x:450,y:200,width:350,height:15}]; enemies = [createCharacter(650, 150), createCharacter(150, 280), createCharacter(400, 530)]; }
     function setupLevel2() { platforms = [{x:0,y:580,width:800,height:20},{x:200,y:450,width:400,height:15},{x:50,y:320,width:250,height:15},{x:500,y:320,width:250,height:15},{x:0,y:200,width:350,height:15},{x:450,y:200,width:350,height:15}]; enemies = [createCharacter(700, 150), createCharacter(100, 150), createCharacter(400, 400)]; }
@@ -259,7 +261,97 @@ const levelInstructions = {
         bossBattleState = 'intro';
         qteTimer = 90;
         successfulRounds = 0;
+    } */
+	
+	
+	function setupLevel1() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:200, y:350, width:400, height:15},
+            {x:50, y:220, width:250, height:15},
+            {x:500, y:220, width:250, height:15},
+            {x:0, y:100, width:350, height:15},
+            {x:450, y:100, width:350, height:15}
+        ]; 
+        enemies = [createCharacter(650, 50), createCharacter(150, 180), createCharacter(400, 430)];
     }
+    function setupLevel2() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:200, y:350, width:400, height:15},
+            {x:50, y:220, width:250, height:15},
+            {x:500, y:220, width:250, height:15},
+            {x:0, y:100, width:350, height:15},
+            {x:450, y:100, width:350, height:15}
+        ]; 
+        enemies = [createCharacter(700, 50), createCharacter(100, 50), createCharacter(400, 300)];
+    }
+    function setupLevel3() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:200, y:350, width:400, height:15},
+            {x:50, y:220, width:250, height:15},
+            {x:500, y:220, width:250, height:15},
+            {x:0, y:100, width:350, height:15},
+            {x:450, y:100, width:350, height:15}
+        ]; 
+        enemies = [createCharacter(100, 50, false, 'tough'), createCharacter(700, 50, false, 'tough'),createCharacter(200, 180, false, 'tough'), createCharacter(600, 180, false, 'tough'),createCharacter(150, 430, false, 'tough'), createCharacter(650, 430, false, 'tough')];
+    }
+    function setupLevel4() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:0, y:350, width:250, height:15},
+            {x:870, y:350, width:250, height:15},
+            {x:435, y:230, width:250, height:15}
+        ]; 
+        enemies = [createCharacter(100, 300, false, 'tough'), createCharacter(1020, 300, false, 'tough'),createCharacter(455, 180, false, 'tough'), createCharacter(665, 180, false, 'tough'),createCharacter(200, 430, false, 'tough'), createCharacter(920, 430, false, 'tough')];
+    }
+    function setupLevel5() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:0, y:380, width:200, height:15},
+            {x:920, y:380, width:200, height:15},
+            {x:460, y:270, width:200, height:15}
+        ]; 
+        enemies = [createCharacter(100, 330, false, 'tough'),createCharacter(1020, 330, false, 'tough'),createCharacter(510, 220, false, 'tough')]; 
+        helicopters = [createHelicopter(100, 80),createHelicopter(920, 120)];
+    }
+    function setupLevel6() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:50, y:350, width:150, height:15},
+            {x:920, y:350, width:150, height:15},
+            {x:510, y:380, width:100, height:15, isTree:true},
+            {x:535, y:290, width:50, height:15, isTree:true},
+            {x:510, y:200, width:100, height:15, isTree:true},
+        ]; 
+        enemies = [createCharacter(100, 300, false, 'angled_shooter'),createCharacter(1020, 300, false, 'angled_shooter'),createCharacter(300, 430, false, 'angled_shooter')];
+    }
+    function setupLevel7() {
+        platforms = [
+            {x:0, y:470, width:1120, height:20}, // Ground floor extended to 1120
+            {x:100, y:350, width:920, height:15},
+            {x:410, y:220, width:300, height:15}
+        ]; 
+        const bumpPlatform = platforms[Math.floor(Math.random() * platforms.length)]; 
+        const bumpX = bumpPlatform.x + 20 + Math.random() * (bumpPlatform.width - 40); 
+        bump = { x: bumpX, y: bumpPlatform.y - 10, width: 20, height: 10, triggered: false };
+    }
+    function setupLevel8() {
+        player = createGod(250, 240, true); // Adjusted positions for wider screen
+        boss = createGod(770, 240, false);
+        roundNumber = 1;
+        playerChances = BOSS_BATTLE_CHANCES;
+        battleResultText = '';
+        bossBattleState = 'intro';
+        qteTimer = 90;
+        successfulRounds = 0;
+    }
+
+    // Also update respawnPlayer to match the new ground height
+    function respawnPlayer() { player = createCharacter(100, 420, true); }
+	
+	
     
     function spawnNextLion() { const spawnPoints=[50,700,400];if(lionsSpawnedCount<3){lions.push(createLion(spawnPoints[lionsSpawnedCount],550));lionsSpawnedCount++;lionsHaveSpawned=true}}
     
