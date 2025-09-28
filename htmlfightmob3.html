@@ -533,8 +533,6 @@ const levelInstructions = {
     // --- DRAWING FUNCTIONS ---
     function drawStickman(character) { ctx.save();ctx.strokeStyle=character.isPoweredUp?'#00FFFF':'black';ctx.lineWidth=3;const x=character.x+character.width/2;const y=character.y;if(character.isFlipping){const flipProgress=(45-character.flipCooldown)/45;ctx.translate(x,y+character.height/2);ctx.rotate(character.direction*flipProgress*2*Math.PI);ctx.translate(-x,-(y+character.height/2))}if(character.isStunned){ctx.translate(x,y+character.height);ctx.rotate(character.direction*Math.PI/2);ctx.translate(-x,-(y+character.height))}if(character!==player&&character.maxHealth){const healthBarWidth=40;const healthBarHeight=5;const barX=x-healthBarWidth/2;const barY=y-15;ctx.fillStyle='#c54242';ctx.fillRect(barX,barY,healthBarWidth,healthBarHeight);const healthPercentage=character.health/character.maxHealth;ctx.fillStyle='#49c542';ctx.fillRect(barX,barY,healthBarWidth*healthPercentage,healthBarHeight);ctx.strokeStyle='black';ctx.lineWidth=1;ctx.strokeRect(barX,barY,healthBarWidth,healthBarHeight);ctx.lineWidth=3}const headRadius=8;const bodyLength=20;const armLength=15;const legLength=20;ctx.beginPath();ctx.arc(x,y+headRadius,headRadius,0,Math.PI*2);ctx.moveTo(x,y+headRadius*2);ctx.lineTo(x,y+headRadius*2+bodyLength);ctx.stroke();const armY=y+headRadius*2+5;const legY=y+headRadius*2+bodyLength;if(character.isFlipping||character.isStunned){ctx.beginPath();ctx.moveTo(x,armY);ctx.lineTo(x,armY+10);ctx.moveTo(x,legY);ctx.lineTo(x,legY-10);ctx.stroke()}else if(character.isPunching){drawPunchAnimation(character,x,armY)}else if(character.isKicking){drawKickAnimation(character,x,legY)}else if(!character.onGround){const airTimeOffset=Math.sin(globalTimer/10)*2;ctx.beginPath();ctx.moveTo(x,armY);ctx.lineTo(x-5*character.direction,armY+10);ctx.moveTo(x,legY);ctx.lineTo(x+5,legY+10+airTimeOffset);ctx.moveTo(x,legY);ctx.lineTo(x-5,legY+10-airTimeOffset);ctx.stroke()}else if(Math.abs(character.vx)>1){const runCycle=Math.sin(globalTimer/4);ctx.beginPath();ctx.moveTo(x,armY);ctx.lineTo(x+(armLength-5)*character.direction*-runCycle,armY+10);ctx.moveTo(x,legY);ctx.lineTo(x+legLength*runCycle,legY+legLength);ctx.moveTo(x,legY);ctx.lineTo(x-legLength*runCycle,legY+legLength);ctx.stroke()}else{const breath=Math.sin(globalTimer/20)*1.5;ctx.beginPath();ctx.moveTo(x,armY);ctx.lineTo(x,armY+breath+10);ctx.moveTo(x,legY);ctx.lineTo(x-8,legY+legLength);ctx.moveTo(x,legY);ctx.lineTo(x+8,legY+legLength);ctx.stroke()}ctx.restore()}
     
-	
-	
 	// Easing helpers
 function easeInOutQuad(t) {
   return t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
@@ -548,23 +546,23 @@ function easeOutElastic(t) {
     : Math.pow(2, -10 * t) * Math.sin((t * 10 - 0.75) * c4) + 1;
 }
 
-// Punch Animation (wind-up → hit → recoil)
+// Punch Animation (arm: max ~30px)
 function drawPunchAnimation(character, x, armY) {
   const punchProgress = (30 - character.punchCooldown) / 30; // 0 → 1
   let armExtension = 0;
 
   if (punchProgress < 0.2) {
-    // Wind-up (pull arm back)
+    // Wind-up (backwards)
     const t = punchProgress / 0.2;
-    armExtension = easeInOutQuad(t) * -8;
+    armExtension = easeInOutQuad(t) * -6; // back only ~6px
   } else if (punchProgress < 0.6) {
-    // Punch forward (impact)
+    // Strike
     const t = (punchProgress - 0.2) / 0.4;
-    armExtension = -8 + easeInOutQuad(t) * 35;
+    armExtension = -6 + easeInOutQuad(t) * 28; // forward up to 22px
   } else {
-    // Recoil (arm returns slightly but overshoots)
+    // Recoil (elastic return but small range)
     const t = (punchProgress - 0.6) / 0.4;
-    armExtension = 27 - easeOutElastic(t) * 10;
+    armExtension = 22 - easeOutElastic(t) * 6; // settle near 20–22px
   }
 
   ctx.beginPath();
@@ -573,7 +571,7 @@ function drawPunchAnimation(character, x, armY) {
   ctx.stroke();
 }
 
-// Kick Animation (wind-up → kick → recoil)
+// Kick Animation (leg: max ~40px)
 function drawKickAnimation(character, x, legY) {
   const kickProgress = (45 - character.kickCooldown) / 45; // 0 → 1
   let legExtension = 0;
@@ -582,18 +580,18 @@ function drawKickAnimation(character, x, legY) {
   if (kickProgress < 0.25) {
     // Wind-up (leg back)
     const t = kickProgress / 0.25;
-    legExtension = -10 * t;
+    legExtension = easeInOutQuad(t) * -8; // back ~8px
     legAngle = 5 * t;
   } else if (kickProgress < 0.6) {
-    // Strong kick forward
+    // Kick forward
     const t = (kickProgress - 0.25) / 0.35;
-    legExtension = easeInOutQuad(t) * 30;
-    legAngle = -10 + 20 * t;
+    legExtension = -8 + easeInOutQuad(t) * 40; // forward ~32px
+    legAngle = -5 + 10 * t; // small angle change
   } else {
-    // Recoil with elastic overshoot
+    // Recoil
     const t = (kickProgress - 0.6) / 0.4;
-    legExtension = 25 - easeOutElastic(t) * 10;
-    legAngle = 5 - easeOutElastic(t) * 15;
+    legExtension = 32 - easeOutElastic(t) * 8; // settle ~24–32px
+    legAngle = 5 - easeOutElastic(t) * 8;
   }
 
   ctx.beginPath();
@@ -601,6 +599,7 @@ function drawKickAnimation(character, x, legY) {
   ctx.lineTo(x + legExtension * character.direction, legY + legAngle);
   ctx.stroke();
 }
+
 	
 	
 	
